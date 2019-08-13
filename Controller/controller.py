@@ -3,11 +3,13 @@ import serial
 import threading
 from mpn import MPNManager
 import time
+import datetime
 
 class Controller:
     def __init__(self):
         self.mpn_manager = MPNManager()
         self.mpn_manager.print_routing_table()
+        self._last_advertised = datetime.datetime.now()
         # load data form db
 
     def run(self):
@@ -17,6 +19,15 @@ class Controller:
         while True:
             time.sleep(2)
             print('.')
+
+    def advertise_mpn_routing_table(self):
+        print("ADEVERTISING Routing Table")
+        _last_advertised = datetime.datetime.now()
+        start_time = datetime.datetime.now()
+        diff = datetime.datetime.now() - start_time
+        while (diff.seconds < 2):
+            self.mpn_manager.response_next_distance_vector()
+            time.sleep(0.2)
 
     def handle_serial_input(self):
         ser = serial.Serial('/dev/ttyS0', baudrate=9600, timeout=None)
@@ -34,6 +45,11 @@ class Controller:
                     print(packet)
             except Exception as e:
                 print(e)
+            start_time = datetime.datetime.now()
+            diff = datetime.datetime.now() - start_time
+            if(diff.seconds > 120):
+                self.advertise_mpn_routing_table()
+
 
 controller = Controller()
 controller.run()
