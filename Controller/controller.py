@@ -10,6 +10,7 @@ class Controller:
         self.mpn_manager = MPNManager()
         self.mpn_manager.print_routing_table()
         self._last_advertised = 0
+        self.ser = serial.Serial('/dev/ttyS0', baudrate=9600, timeout=None)
         # load data form db
 
     def run(self):
@@ -25,23 +26,25 @@ class Controller:
         _last_advertised = datetime.datetime.now()
         start_time = datetime.datetime.now()
         diff = datetime.datetime.now() - start_time
+        print("Diff {}".format(diff.seconds))
         while (diff.seconds < 2):
-            self.mpn_manager.response_next_distance_vector()
+            response = self.mpn_manager.response_next_distance_vector()
+            print("Response DV {}".format(response))
+            self.ser.write(response.encode())
             time.sleep(0.2)
             diff = datetime.datetime.now() - start_time
 
     def handle_serial_input(self):
-        ser = serial.Serial('/dev/ttyS0', baudrate=9600, timeout=None)
         while True:
             try:
                 p = re.compile('<.*>')
-                packet = str(ser.readline())
+                packet = str(self.ser.readline())
                 result = p.search(packet)
                 if result:
                     print("Packet data: {}".format(result.group(0)))
                     response = self.mpn_manager.response_handler(result.group(0))
                     print("response: {}".format(response))
-                    ser.write(response.encode())
+                    self.ser.write(response.encode())
                 else:
                     print(packet)
             except Exception as e:
