@@ -9,7 +9,7 @@ class Controller:
     def __init__(self):
         self.mpn_manager = MPNManager()
         self.mpn_manager.print_routing_table()
-        self._last_advertised = datetime.datetime.now()
+        self._last_advertised = 0
         # load data form db
 
     def run(self):
@@ -45,9 +45,9 @@ class Controller:
                     print(packet)
             except Exception as e:
                 print(e)
-            start_time = datetime.datetime.now()
-            diff = datetime.datetime.now() - start_time
+            diff = datetime.datetime.now() - self._last_advertised
             if(diff.seconds > 120):
+                self._last_advertised = datetime.datetime.now()
                 self.advertise_mpn_routing_table()
 
 
