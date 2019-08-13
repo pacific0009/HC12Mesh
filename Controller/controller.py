@@ -28,6 +28,7 @@ class Controller:
         while (diff.seconds < 2):
             self.mpn_manager.response_next_distance_vector()
             time.sleep(0.2)
+            diff = datetime.datetime.now() - start_time
 
     def handle_serial_input(self):
         ser = serial.Serial('/dev/ttyS0', baudrate=9600, timeout=None)
@@ -47,10 +48,10 @@ class Controller:
                 print(e)
             diff = datetime.datetime.now() - self._last_advertised
             if(diff.seconds > 120):
-                self._last_advertised = datetime.datetime.now()
                 self.advertise_mpn_routing_table()
 
 
 controller = Controller()
 controller.run()
+controller.advertise_mpn_routing_table()
 
