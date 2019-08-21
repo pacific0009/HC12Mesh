@@ -18,20 +18,22 @@ class Controller:
         t.setDaemon(True)
         t.start()
         while True:
+            if(self._last_advertised == 0 or (datetime.datetime.now() - self._last_advertised).total_seconds() > 120):
+                self.advertise_mpn_routing_table()
             time.sleep(2)
             print('.')
 
     def advertise_mpn_routing_table(self):
         print("ADEVERTISING Routing Table")
-        _last_advertised = datetime.datetime.now()
+        self._last_advertised = datetime.datetime.now()
         start_time = datetime.datetime.now()
         diff = datetime.datetime.now() - start_time
         print("Diff {}".format(diff.seconds))
-        while (diff.seconds < 2):
+        while (diff.seconds < 20):
             response = self.mpn_manager.response_next_distance_vector()
             print("Response DV {}".format(response))
             self.ser.write(response.encode())
-            time.sleep(0.2)
+            time.sleep(0.02)
             diff = datetime.datetime.now() - start_time
 
     def handle_serial_input(self):
@@ -49,10 +51,6 @@ class Controller:
                     print(packet)
             except Exception as e:
                 print(e)
-            diff = datetime.datetime.now() - self._last_advertised
-            if(diff.seconds > 120):
-                self.advertise_mpn_routing_table()
-
 
 controller = Controller()
 controller.run()
